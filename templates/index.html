@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Image Resizer</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .left-panel {
+            background: #1e1e1e;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            border: 1px solid #333;
+        }
+
+        .right-panel {
+            background: #1e1e1e;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            height: fit-content;
+            border: 1px solid #333;
+        }
+
+        /* Upload Area */
+        .upload-section {
+            margin-bottom: 30px;
+        }
+
+        .upload-area {
+            border: 3px dashed #555;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            border-color: #888;
+            background: linear-gradient(135deg, #333 0%, #252525 100%);
+            transform: translateY(-2px);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #e0e0e0;
+        }
+
+        .upload-subtext {
+            color: #999;
+            margin-bottom: 20px;
+        }
+
+        .file-types {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        #fileInput, #batchFiles {
+            display: none;
+        }
+
+        /* Image Preview */
+        .image-preview {
+            display: none;
+            background: #2a2a2a;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid #444;
+        }
+
+        .preview-container {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .preview-image {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+        }
+
+        .preview-info {
+            flex: 1;
+        }
+
+        .preview-info h3 {
+            color: #e0e0e0;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .info-item {
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            color: #999;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: #e0e0e0;
+        }
+
+        .remove-btn {
+            background: #666;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-left: auto;
+            transition: background 0.2s;
+        }
+
+        .remove-btn:hover {
+            background: #555;
+        }
+
+        /* Controls Panel */
+        .controls {
+            display: none;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #e0e0e0;
+            border-bottom: 2px solid #888;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-row label {
+            font-weight: 500;
+            color: #e0e0e0;
+            min-width: 80px;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        input[type="number"], input[type="range"] {
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+
+        input[type="number"]:focus, select:focus {
+            border-color: #888;
+            box-shadow: 0 0 0 3px rgba(136,136,136,0.15);
+        }
+
+        input[type="number"] {
+            width: 80px;
+        }
+
+        select {
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 14px;
+            outline: none;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            cursor: pointer;
+            min-width: 120px;
+        }
+
+        .lock-btn {
+            background: #888;
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .lock-btn.unlocked {
+            background: #555;
+        }
+
+        .lock-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* Color Picker */
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .color-option {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .color-option.selected {
+            border-color: #888;
+            transform: scale(1.15);
+        }
+
+        .color-option.white {
+            background: white;
+            border: 3px solid #666;
+        }
+
+        .color-option.black {
+            background: black;
+            border: 3px solid #666;
+        }
+
+        .color-option.custom {
+            background: linear-gradient(45deg, #666, #999, #777, #888);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #customColor {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* Presets */
+        .presets-section {
+            background: #2a2a2a;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #444;
+        }
+
+        .preset-categories {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .preset-tab {
+            background: #1a1a1a;
+            border: 2px solid #444;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            color: #e0e0e0;
+        }
+
+        .preset-tab.active {
+            background: #888;
+            color: white;
+            border-color: #888;
+        }
+
+        .preset-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .preset-btn {
+            background: #1a1a1a;
+            border: 1px solid #444;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+            text-align: center;
+            color: #e0e0e0;
+        }
+
+        .preset-btn:hover {
+            background: #888;
+            color: white;
+        }
+
+        /* Enhancement Controls */
+        .enhancement-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .range-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .range-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #444;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #888;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #888;
+            cursor: pointer;
+            border: none;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #666 0%, #333 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn-secondary {
+            background: #555;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #444;
+        }
+
+        .btn-success {
+            background: #666;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #555;
+        }
+
+        /* Results */
+        .results-section {
+            display: none;
+            background: #2a2a2a;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            border: 1px solid #444;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        .success-title {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #e0e0e0;
+        }
+
+        .result-preview {
+            margin: 25px 0;
+        }
+
+        .result-image {
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            margin-bottom: 15px;
+        }
+
+        .result-info {
+            color: #999;
+            font-size: 1rem;
+            margin-bottom: 25px;
+        }
+
+        /* Batch Processing */
+        .batch-section {
+            background: #1e1e1e;
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            border: 1px solid #333;
+        }
+
+        .batch-upload {
+            border: 2px dashed #555;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+            background: #2a2a2a;
+        }
+
+        .batch-upload:hover {
+            border-color: #888;
+            background: #333;
+        }
+
+        .batch-files-list {
+            display: none;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            background: #2a2a2a;
+        }
+
+        .batch-file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #444;
+            color: #e0e0e0;
+        }
+
+        .batch-file-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Loading States */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #444;
+            border-top: 4px solid #888;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #444;
+            border-radius: 4px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #666, #888);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #1e1e1e;
+            color: #e0e0e0;
+            border-radius: 10px;
+            padding: 15px 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-left: 4px solid #666;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            max-width: 300px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            border-left-color: #999;
+        }
+
+        .notification.warning {
+            border-left-color: #777;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .right-panel {
+                order: -1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .left-panel, .right-panel, .batch-section {
+                padding: 20px;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .form-row label {
+                min-width: auto;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .preset-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .enhancement-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #2a2a2a;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-image"></i> Advanced Image Resizer</h1>
+            <p>Professional image resizing with advanced features and batch processing</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Panel -->
+            <div class="left-panel">
+                <!-- Upload Section -->
+                <div class="upload-section">
+                    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div class="upload-text">Select Image to Resize</div>
+                        <div class="upload-subtext">or drag and drop an image here</div>
+                        <div class="file-types">Supports: JPG, PNG, GIF, BMP, TIFF, WebP</div>
+                        <input type="file" id="fileInput" accept="image/*">
+                    </div>
+                </div>
+
+                <!-- Image Preview -->
+                <div class="image-preview" id="imagePreview">
+                    <div class="preview-container">
+                        <img class="preview-image" id="previewImg" alt="Preview">
+                        <div class="preview-info">
+                            <h3 id="fileName">filename.jpg</h3>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <div class="info-label">Dimensions</div>
+                                    <div class="info-value" id="imageDimensions">1920 x 1080</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Size</div>
+                                    <div class="info-value" id="imageSize">2.5 MB</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Format</div>
+                                    <div class="info-value" id="imageFormat">JPEG</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Mode</div>
+                                    <div class="info-value" id="imageMode">RGB</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="remove-btn" onclick="removeImage()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results Section -->
+                <div class="results-section" id="resultsSection">
+                    <div class="success-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="success-title">Your image has been resized!</div>
+                    <div class="result-preview">
+                        <img class="result-image" id="resultImage" alt="Resized Image">
+                        <div class="result-info" id="resultInfo">filename.jpg | 500 KB</div>
+                    </div>
+                    <div class="action-buttons">
+                        <a class="btn btn-success" id="downloadBtn" href="#" download>
+                            <i class="fas fa-download"></i> Download Image
+                        </a>
+                        <button class="btn btn-secondary" onclick="resetApp()">
+                            <i class="fas fa-redo"></i> Resize Another
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Loading -->
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <div>Processing your image...</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Controls -->
+            <div class="right-panel">
+                <div class="controls" id="controls">
+                    <!-- Presets Section -->
+                    <div class="presets-section">
+                        <div class="section-title">
+                            <i class="fas fa-magic"></i> Quick Presets
+                        </div>
+                        <div class="preset-categories">
+                            <div class="preset-tab active" data-category="social_media">Social</div>
+                            <div class="preset-tab" data-category="print">Print</div>
+                            <div class="preset-tab" data-category="web">Web</div>
+                        </div>
+                        <div class="preset-options" id="presetOptions">
+                            <!-- Presets will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Dimensions -->
+                    <div class="form-group">
+                        <div class="section-title">
+                            <i class="fas fa-expand-arrows-alt"></i> Dimensions
+                        </div>
+                        <div class="form-row">
+                            <label>Width</label>
+                            <div class="input-container">
+                                <input type="number" id="widthInput" value="100" min="1">
+                                <button class="lock-btn" id="lockBtn" onclick="toggleLock()">
+                                    <i class="fas fa-lock"></i>
+                                </button>
+                                <select id="unitSelect">
+                                    <option value="percent">Percent</option>
+                                    <option value="pixels">Pixels</option>
+                                    <option value="inches">Inches</option>
+                                    <option value="centimeters">Centimeters</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <label>Height</label>
+                            <div class="input-container">
+                                <input type="number" id="heightInput" value="100" min="1">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <label>DPI</label>
+                            <div class="input-container">
+                                <input type="number" id="dpiInput" value="72" min="1" max="600">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Format & Quality -->
+                    <div class="form-group">
+                        <div class="section-title">
+                            <i class="fas fa-file-image"></i> Output Format
+                        </div>
+                        <div class="form-row">
+                            <label>Format</label>
+                            <select id="formatSelect">
+                                <option value="JPEG">JPG</option>
+                                <option value="PNG">PNG</option>
+                                <option value="GIF">GIF</option>
+                                <option value="BMP">BMP</option>
+                                <option value="TIFF">TIFF</option>
+                                <option value="WEBP">WebP</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <label>Quality</label>
+                            <div class="input-container">
+                                <input type="range" id="qualityRange" min="1" max="100" value="90">
+                                <span id="qualityValue">90%</span>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <label>Resample</label>
+                            <select id="resampleSelect">
+                                <option value="lanczos">Lanczos (Best)</option>
+                                <option value="bicubic">Bicubic</option>
+                                <option value="bilinear">Bilinear</option>
+                                <option value="nearest">Nearest</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Background Color -->
+                    <div class="form-group">
+                        <div class="section-title">
+                            <i class="fas fa-palette"></i> Background
+                        </div>
+                        <div class="form-row">
+                            <label>Color</label>
+                            <div class="color-picker">
+                                <div class="color-option white selected" data-color="white"></div>
+                                <div class="color-option black" data-color="black"></div>
+                                <div class="color-option custom" data-color="custom">
+                                    <input type="color" id="customColor" value="#ffffff">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Image Enhancements -->
+                    <div class="form-group">
+                        <div class="section-title">
+                            <i class="fas fa-sliders-h"></i> Enhancements
+                        </div>
+                        <div class="enhancement-grid">
+                            <div class="range-container">
+                                <div class="range-label">
+                                    <span>Brightness</span>
+                                    <span id="brightnessValue">1.0</span>
+                                </div>
+                                <input type="range" id="brightnessRange" min="0.1" max="2.0" step="0.1" value="1.0">
+                            </div>
+                            <div class="range-container">
+                                <div class="range-label">
+                                    <span>Contrast</span>
+                                    <span id="contrastValue">1.0</span>
+                                </div>
+                                <input type="range" id="contrastRange" min="0.1" max="2.0" step="0.1" value="1.0">
+                            </div>
+                            <div class="range-container">
+                                <div class="range-label">
+                                    <span>Saturation</span>
+                                    <span id="saturationValue">1.0</span>
+                                </div>
+                                <input type="range" id="saturationRange" min="0.0" max="2.0" step="0.1" value="1.0">
+                            </div>
+                            <div class="range-container">
+                                <div class="range-label">
+                                    <span>Sharpness</span>
+                                    <span id="sharpnessValue">1.0</span>
+                                </div>
+                                <input type="range" id="sharpnessRange" min="0.0" max="2.0" step="0.1" value="1.0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" id="resizeBtn" onclick="resizeImage()">
+                            <i class="fas fa-magic"></i> Resize Image
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Batch Processing Section -->
+        <div class="batch-section">
+            <div class="section-title">
+                <i class="fas fa-layer-group"></i> Batch Processing
+            </div>
+            <div class="batch-upload" onclick="document.getElementById('batchFiles').click()">
+                <div class="upload-icon">
+                    <i class="fas fa-images"></i>
+                </div>
+                <div class="upload-text">Select Multiple Images</div>
+                <div class="upload-subtext">Process multiple images with the same settings</div>
+                <input type="file" id="batchFiles" accept="image/*" multiple>
+            </div>
+            <div class="batch-files-list" id="batchFilesList">
+                <!-- Batch files will be listed here -->
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-primary" id="batchResizeBtn" onclick="batchResize()" disabled>
+                    <i class="fas fa-layer-group"></i> Resize All Images
+                </button>
+                <button class="btn btn-secondary" onclick="clearBatchFiles()">
+                    <i class="fas fa-trash"></i> Clear List
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <div id="notificationMessage"></div>
+    </div>
+
+    <script>
+        let currentFile = null;
+        let isProportionsLocked = true;
+        let originalRatio = 1;
+        let presets = {};
+        let batchFiles = [];
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            loadPresets();
+            updateQualityDisplay();
+            updateEnhancementDisplays();
+        });
+
+        function setupEventListeners() {
+            // File upload
+            const fileInput = document.getElementById('fileInput');
+            const uploadArea = document.querySelector('.upload-area');
+            
+            fileInput.addEventListener('change', handleFileSelect);
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('drop', handleDrop);
+            uploadArea.addEventListener('dragleave', handleDragLeave);
+
+            // Dimension inputs
+            document.getElementById('widthInput').addEventListener('input', handleDimensionChange);
+            document.getElementById('heightInput').addEventListener('input', handleDimensionChange);
+            document.getElementById('unitSelect').addEventListener('change', handleUnitChange);
+
+            // Quality slider
+            document.getElementById('qualityRange').addEventListener('input', updateQualityDisplay);
+
+            // Enhancement sliders
+            ['brightness', 'contrast', 'saturation', 'sharpness'].forEach(type => {
+                document.getElementById(type + 'Range').addEventListener('input', () => updateEnhancementDisplay(type));
+            });
+
+            // Color picker
+            document.querySelectorAll('.color-option').forEach(option => {
+                option.addEventListener('click', () => selectColor(option));
+            });
+
+            // Custom color input
+            document.getElementById('customColor').addEventListener('change', handleCustomColor);
+
+            // Preset tabs
+            document.querySelectorAll('.preset-tab').forEach(tab => {
+                tab.addEventListener('click', () => switchPresetCategory(tab.dataset.category));
+            });
+
+            // Batch files
+            document.getElementById('batchFiles').addEventListener('change', handleBatchFiles);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                uploadFile(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                uploadFile(file);
+            }
+        }
+
+        async function uploadFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showNotification('Please select an image file.', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                showLoading(true);
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentFile = result;
+                    showImagePreview(result);
+                    showControls();
+                    showNotification('Image uploaded successfully!', 'success');
+                } else {
+                    showNotification(result.error || 'Upload failed', 'error');
+                }
+            } catch (error) {
+                showNotification('Upload failed: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showImagePreview(fileData) {
+            const preview = document.getElementById('imagePreview');
+            const img = document.getElementById('previewImg');
+            const fileName = document.getElementById('fileName');
+            const dimensions = document.getElementById('imageDimensions');
+            const size = document.getElementById('imageSize');
+            const format = document.getElementById('imageFormat');
+            const mode = document.getElementById('imageMode');
+
+            img.src = fileData.preview;
+            fileName.textContent = fileData.filename;
+            dimensions.textContent = `${fileData.info.width} x ${fileData.info.height}`;
+            size.textContent = formatFileSize(fileData.info.size_bytes);
+            format.textContent = fileData.info.format;
+            mode.textContent = fileData.info.mode;
+
+            originalRatio = fileData.info.width / fileData.info.height;
+            
+            preview.style.display = 'block';
+            document.querySelector('.upload-area').style.display = 'none';
+        }
+
+        function showControls() {
+            document.getElementById('controls').style.display = 'block';
+            updateDimensionInputs();
+        }
+
+        function removeImage() {
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('controls').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'none';
+            document.querySelector('.upload-area').style.display = 'block';
+            document.getElementById('fileInput').value = '';
+            currentFile = null;
+        }
+
+        function toggleLock() {
+            isProportionsLocked = !isProportionsLocked;
+            const lockBtn = document.getElementById('lockBtn');
+            const icon = lockBtn.querySelector('i');
+            
+            if (isProportionsLocked) {
+                icon.className = 'fas fa-lock';
+                lockBtn.style.background = '#888';
+            } else {
+                icon.className = 'fas fa-unlock';
+                lockBtn.style.background = '#555';
+            }
+        }
+
+        function handleDimensionChange(e) {
+            if (!isProportionsLocked || !currentFile) return;
+
+            const isWidth = e.target.id === 'widthInput';
+            const widthInput = document.getElementById('widthInput');
+            const heightInput = document.getElementById('heightInput');
+
+            if (isWidth) {
+                const newWidth = parseFloat(widthInput.value) || 0;
+                const newHeight = Math.round(newWidth / originalRatio * 100) / 100;
+                heightInput.value = newHeight;
+            } else {
+                const newHeight = parseFloat(heightInput.value) || 0;
+                const newWidth = Math.round(newHeight * originalRatio * 100) / 100;
+                widthInput.value = newWidth;
+            }
+        }
+
+        function handleUnitChange() {
+            updateDimensionInputs();
+        }
+
+        function updateDimensionInputs() {
+            if (!currentFile) return;
+
+            const unit = document.getElementById('unitSelect').value;
+            const widthInput = document.getElementById('widthInput');
+            const heightInput = document.getElementById('heightInput');
+            const dpi = parseFloat(document.getElementById('dpiInput').value) || 72;
+
+            let width, height;
+
+            switch (unit) {
+                case 'percent':
+                    width = height = 100;
+                    break;
+                case 'pixels':
+                    width = currentFile.info.width;
+                    height = currentFile.info.height;
+                    break;
+                case 'inches':
+                    width = Math.round(currentFile.info.width / dpi * 100) / 100;
+                    height = Math.round(currentFile.info.height / dpi * 100) / 100;
+                    break;
+                case 'centimeters':
+                    width = Math.round(currentFile.info.width / dpi * 2.54 * 100) / 100;
+                    height = Math.round(currentFile.info.height / dpi * 2.54 * 100) / 100;
+                    break;
+            }
+
+            widthInput.value = width;
+            heightInput.value = height;
+        }
+
+        function updateQualityDisplay() {
+            const range = document.getElementById('qualityRange');
+            const display = document.getElementById('qualityValue');
+            display.textContent = range.value + '%';
+        }
+
+        function updateEnhancementDisplays() {
+            ['brightness', 'contrast', 'saturation', 'sharpness'].forEach(updateEnhancementDisplay);
+        }
+
+        function updateEnhancementDisplay(type) {
+            const range = document.getElementById(type + 'Range');
+            const display = document.getElementById(type + 'Value');
+            display.textContent = parseFloat(range.value).toFixed(1);
+        }
+
+        function selectColor(option) {
+            document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+            option.classList.add('selected');
+        }
+
+        function handleCustomColor() {
+            const customOption = document.querySelector('.color-option.custom');
+            selectColor(customOption);
+        }
+
+        async function loadPresets() {
+            try {
+                const response = await fetch('/presets');
+                presets = await response.json();
+                switchPresetCategory('social_media');
+            } catch (error) {
+                console.error('Failed to load presets:', error);
+            }
+        }
+
+        function switchPresetCategory(category) {
+            document.querySelectorAll('.preset-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.category === category);
+            });
+
+            const container = document.getElementById('presetOptions');
+            container.innerHTML = '';
+
+            if (presets[category]) {
+                Object.entries(presets[category]).forEach(([name, settings]) => {
+                    const btn = document.createElement('div');
+                    btn.className = 'preset-btn';
+                    btn.textContent = name;
+                    btn.onclick = () => applyPreset(settings);
+                    container.appendChild(btn);
+                });
+            }
+        }
+
+        function applyPreset(settings) {
+            document.getElementById('widthInput').value = settings.width;
+            document.getElementById('heightInput').value = settings.height;
+            document.getElementById('unitSelect').value = settings.unit;
+            
+            if (settings.dpi) {
+                document.getElementById('dpiInput').value = settings.dpi;
+            }
+
+            showNotification('Preset applied successfully!', 'success');
+        }
+
+        async function resizeImage() {
+            if (!currentFile) {
+                showNotification('Please select an image first.', 'error');
+                return;
+            }
+
+            const settings = getResizeSettings();
+            
+            try {
+                showLoading(true, 'Resizing image...');
+                
+                const response = await fetch('/resize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(settings)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResults(result);
+                    showNotification('Image resized successfully!', 'success');
+                } else {
+                    showNotification(result.error || 'Resize failed', 'error');
+                }
+            } catch (error) {
+                showNotification('Resize failed: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function getResizeSettings() {
+            const selectedColor = document.querySelector('.color-option.selected');
+            let backgroundColor = null;
+            
+            if (selectedColor.classList.contains('white')) {
+                backgroundColor = '#FFFFFF';
+            } else if (selectedColor.classList.contains('black')) {
+                backgroundColor = '#000000';
+            } else if (selectedColor.classList.contains('custom')) {
+                backgroundColor = document.getElementById('customColor').value;
+            }
+
+            return {
+                width: parseFloat(document.getElementById('widthInput').value),
+                height: parseFloat(document.getElementById('heightInput').value),
+                unit: document.getElementById('unitSelect').value,
+                dpi: parseFloat(document.getElementById('dpiInput').value),
+                format: document.getElementById('formatSelect').value,
+                quality: parseInt(document.getElementById('qualityRange').value),
+                resample_method: document.getElementById('resampleSelect').value,
+                background_color: backgroundColor,
+                brightness: parseFloat(document.getElementById('brightnessRange').value),
+                contrast: parseFloat(document.getElementById('contrastRange').value),
+                saturation: parseFloat(document.getElementById('saturationRange').value),
+                sharpness: parseFloat(document.getElementById('sharpnessRange').value)
+            };
+        }
+
+        function showResults(result) {
+            const resultsSection = document.getElementById('resultsSection');
+            const resultImage = document.getElementById('resultImage');
+            const resultInfo = document.getElementById('resultInfo');
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            resultImage.src = result.preview;
+            resultInfo.textContent = `${result.info.filename} | ${formatFileSize(result.info.size)} | ${result.info.width} x ${result.info.height}`;
+            downloadBtn.href = `/download/${result.result_id}`;
+
+            resultsSection.style.display = 'block';
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function handleBatchFiles(e) {
+            batchFiles = Array.from(e.target.files).filter(file => file.type.startsWith('image/'));
+            displayBatchFiles();
+            document.getElementById('batchResizeBtn').disabled = batchFiles.length === 0;
+        }
+
+        function displayBatchFiles() {
+            const container = document.getElementById('batchFilesList');
+            container.innerHTML = '';
+
+            if (batchFiles.length > 0) {
+                container.style.display = 'block';
+                batchFiles.forEach((file, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'batch-file-item';
+                    item.innerHTML = `
+                        <span style="color: #e0e0e0;">${file.name}</span>
+                        <button onclick="removeBatchFile(${index})" style="background: #666; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    container.appendChild(item);
+                });
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        function removeBatchFile(index) {
+            batchFiles.splice(index, 1);
+            displayBatchFiles();
+            document.getElementById('batchResizeBtn').disabled = batchFiles.length === 0;
+        }
+
+        function clearBatchFiles() {
+            batchFiles = [];
+            document.getElementById('batchFiles').value = '';
+            displayBatchFiles();
+            document.getElementById('batchResizeBtn').disabled = true;
+        }
+
+        async function batchResize() {
+            if (batchFiles.length === 0) {
+                showNotification('Please select images for batch processing.', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            batchFiles.forEach(file => {
+                formData.append('files', file);
+            });
+            formData.append('options', JSON.stringify(getResizeSettings()));
+
+            try {
+                showLoading(true, 'Processing batch images...');
+                
+                const response = await fetch('/batch_resize', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showBatchResults(result);
+                    showNotification(`Successfully processed ${result.results.length} images!`, 'success');
+                } else {
+                    showNotification(result.error || 'Batch processing failed', 'error');
+                }
+            } catch (error) {
+                showNotification('Batch processing failed: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showBatchResults(result) {
+            const resultsSection = document.getElementById('resultsSection');
+            const resultImage = document.getElementById('resultImage');
+            const resultInfo = document.getElementById('resultInfo');
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            // Show batch results
+            resultImage.style.display = 'none';
+            resultInfo.innerHTML = `
+                <div style="text-align: left; background: #1a1a1a; padding: 20px; border-radius: 10px; margin: 20px 0; border: 1px solid #333;">
+                    <h3 style="margin-bottom: 15px; color: #e0e0e0;">Batch Processing Results:</h3>
+                    ${result.results.map(r => `
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #444;">
+                            <span style="color: #e0e0e0;">${r.original}</span>
+                            <span style="color: ${r.error ? '#999' : '#888'};">
+                                ${r.error || formatFileSize(r.size)}
+                            </span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            downloadBtn.href = `/download_batch/${result.batch_id}`;
+            downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download ZIP';
+
+            resultsSection.style.display = 'block';
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function resetApp() {
+            removeImage();
+            clearBatchFiles();
+            
+            // Reset all controls to defaults
+            document.getElementById('widthInput').value = 100;
+            document.getElementById('heightInput').value = 100;
+            document.getElementById('unitSelect').value = 'percent';
+            document.getElementById('dpiInput').value = 72;
+            document.getElementById('formatSelect').value = 'JPEG';
+            document.getElementById('qualityRange').value = 90;
+            document.getElementById('resampleSelect').value = 'lanczos';
+            
+            // Reset enhancement sliders
+            ['brightness', 'contrast', 'saturation', 'sharpness'].forEach(type => {
+                document.getElementById(type + 'Range').value = 1.0;
+            });
+            
+            // Reset color selection
+            document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+            document.querySelector('.color-option.white').classList.add('selected');
+            
+            updateQualityDisplay();
+            updateEnhancementDisplays();
+            
+            showNotification('App reset successfully!', 'success');
+        }
+
+        function showLoading(show, message = 'Processing...') {
+            const loading = document.getElementById('loading');
+            const loadingText = loading.querySelector('div:last-child');
+            
+            if (show) {
+                loadingText.textContent = message;
+                loading.style.display = 'block';
+                
+                // Simulate progress
+                const progressFill = document.getElementById('progressFill');
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.random() * 15;
+                    if (progress > 90) progress = 90;
+                    progressFill.style.width = progress + '%';
+                    
+                    if (!loading.style.display || loading.style.display === 'none') {
+                        clearInterval(interval);
+                        progressFill.style.width = '0%';
+                    }
+                }, 200);
+            } else {
+                loading.style.display = 'none';
+                document.getElementById('progressFill').style.width = '100%';
+                setTimeout(() => {
+                    document.getElementById('progressFill').style.width = '0%';
+                }, 300);
+            }
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const messageEl = document.getElementById('notificationMessage');
+            
+            notification.className = `notification ${type}`;
+            messageEl.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'o':
+                        e.preventDefault();
+                        document.getElementById('fileInput').click();
+                        break;
+                    case 'r':
+                        e.preventDefault();
+                        if (currentFile) resizeImage();
+                        break;
+                    case 'n':
+                        e.preventDefault();
+                        resetApp();
+                        break;
+                }
+            }
+        });
+
+        // Auto-save settings to localStorage
+        function saveSettings() {
+            const settings = getResizeSettings();
+            localStorage.setItem('imageResizerSettings', JSON.stringify(settings));
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem('imageResizerSettings');
+            if (saved) {
+                try {
+                    const settings = JSON.parse(saved);
+                    // Apply saved settings to controls
+                    Object.keys(settings).forEach(key => {
+                        const element = document.getElementById(key + 'Input') || 
+                                      document.getElementById(key + 'Select') || 
+                                      document.getElementById(key + 'Range');
+                        if (element) {
+                            element.value = settings[key];
+                        }
+                    });
+                    updateQualityDisplay();
+                    updateEnhancementDisplays();
+                } catch (error) {
+                    console.error('Failed to load saved settings:', error);
+                }
+            }
+        }
+
+        // Save settings when controls change
+        document.addEventListener('change', function(e) {
+            if (e.target.matches('input, select')) {
+                setTimeout(saveSettings, 100);
+            }
+        });
+
+        // Load saved settings on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(loadSettings, 100);
+        });
+
+        // Prevent drag and drop on the entire page
+        document.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+
+        document.addEventListener('drop', function(e) {
+            e.preventDefault();
+        });
+    </script>
+</body>
+</html>
